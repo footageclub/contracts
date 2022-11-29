@@ -1,17 +1,25 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 import "./LandToken.sol";
 
-
-contract Club is AccessControl, ERC721, ERC721Holder {
+/// @custom:security-contact test@qq.com
+contract Club is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, PausableUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable, UUPSUpgradeable, ERC721HolderUpgradeable {
     using ECDSAUpgradeable for bytes32;
 
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
 
     // 质押事件
     event PledgeTransfer(address indexed to, uint256 indexed tokenId, uint256 indexed landTokenId);
@@ -24,49 +32,116 @@ contract Club is AccessControl, ERC721, ERC721Holder {
 
     // CludId => LandId
     mapping(uint256 => uint256[]) private clubPledged;
-    
+
     // CludId => LandId => index
     mapping(uint256 => mapping(uint256 => uint)) private clubPledgedIndex;
 
-    LandToken public land; 
+    LandToken public Land; 
 
-    constructor(address _owner, string memory _name, string memory _symbol, LandToken _land) ERC721(_name, _symbol) {
-        _setupRole(SIGNER_ROLE, _owner);
-        _setupRole(DEFAULT_ADMIN_ROLE, _owner);
-        land = _land;
+    string public BaseURI; 
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
     }
 
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
-    function supportsInterface(bytes4 interfaceId) 
-      public 
-      view 
-      virtual 
-      override(AccessControl, ERC721)
-      returns (bool) 
-      {
+    function initialize(string memory _name, string memory _symbol, LandToken _land, string memory _uri) initializer public {
+        __ERC721_init(_name, _symbol);
+        __ERC721URIStorage_init();
+        __Pausable_init();
+        __AccessControl_init();
+        __ERC721Burnable_init();
+        __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(PAUSER_ROLE, msg.sender);
+        _grantRole(SIGNER_ROLE, msg.sender);
+        _grantRole(UPGRADER_ROLE, msg.sender);
+        _grantRole(URI_SETTER_ROLE, msg.sender);
+
+        Land = _land;
+        BaseURI = _uri;
+    }
+
+    function _baseURI() internal view override returns (string memory) {
+        return BaseURI;
+    }
+
+    function pause() public onlyRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    function unpause() public onlyRole(PAUSER_ROLE) {
+        _unpause();
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
+        internal
+        whenNotPaused
+        override
+    {
+        super._beforeTokenTransfer(from, to, tokenId, batchSize);
+    }
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        onlyRole(UPGRADER_ROLE)
+        override
+    {}
+
+    // The following functions are overrides required by Solidity.
+
+    function _burn(uint256 tokenId)
+        internal
+        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
+    {
+        super._burn(tokenId);
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
+        returns (string memory)
+    {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721Upgradeable, AccessControlUpgradeable)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
 
     /**
+     * @dev 改变基础url
+     */
+    function setBaseURI(string memory uri) external onlyRole(URI_SETTER_ROLE) {
+        BaseURI = uri;
+    }
+
+     /**
      * @dev 实现地块质押
      */
-    function pledge(uint256 tokenId, uint256 landTokenId, bytes calldata sign) external {
-        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, msg.sender, tokenId)).toEthSignedMessageHash().recover(sign)), "sign err");
+    function pledge(uint256 tokenId, uint256 landTokenId, string memory _tokenURI, bytes calldata sign) external {
+        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, msg.sender, tokenId, landTokenId)).toEthSignedMessageHash().recover(sign)), "sign err");
         require(!_requireLedged(landTokenId), "Ledged land");
-        address landOwner = land.ownerOf(landTokenId);
+        address landOwner = Land.ownerOf(landTokenId);
         require(landOwner == msg.sender, "address not a valid land owner");
-        require(tokenId > 0 && (land.getApproved(landTokenId) ==  address(this) || land.isApprovedForAll(msg.sender, address(this))), "Invalid token ID");
+        require(tokenId > 0 && (Land.getApproved(landTokenId) ==  address(this) || Land.isApprovedForAll(msg.sender, address(this))), "Invalid token ID");
 
         if (!_exists(tokenId)) {
             _safeMint(msg.sender, tokenId);
+            _setTokenURI(tokenId, _tokenURI);
         } else {
             address owner = ownerOf(tokenId);
             require(owner == msg.sender, "address not a valid owner");
         }
 
-        land.safeTransferFrom(msg.sender, address(this), landTokenId);
+        Land.safeTransferFrom(msg.sender, address(this), landTokenId);
         pledged[landTokenId] = tokenId;
         clubPledged[tokenId].push(landTokenId);
         clubPledgedIndex[tokenId][landTokenId] = clubPledged[tokenId].length - 1;
@@ -78,14 +153,14 @@ contract Club is AccessControl, ERC721, ERC721Holder {
      * @dev 实现地块赎回
      */
     function unpledge(uint256 tokenId, uint256 landTokenId, bytes calldata sign) external {
-        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, msg.sender, tokenId)).toEthSignedMessageHash().recover(sign)), "sign err");
+        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, msg.sender, tokenId, landTokenId)).toEthSignedMessageHash().recover(sign)), "sign err");
         _requireMinted(tokenId);
         address owner = ownerOf(tokenId);
         require(owner == msg.sender, "address not a valid owner");
         require(pledged[landTokenId] == tokenId, "Invalid Owner");
-        require(land.ownerOf(landTokenId) == address(this), "Invalid token ID");
+        require(Land.ownerOf(landTokenId) == address(this), "Invalid token ID");
 
-        land.safeTransferFrom(address(this), owner, landTokenId);
+        Land.safeTransferFrom(address(this), owner, landTokenId);
         pledged[landTokenId] = 0;
         clubPledged[tokenId][clubPledgedIndex[tokenId][landTokenId]]  =  clubPledged[tokenId][clubPledged[tokenId].length -1];
         clubPledged[tokenId].pop();
@@ -95,7 +170,7 @@ contract Club is AccessControl, ERC721, ERC721Holder {
 
         emit UnpledgeTransfer(msg.sender, tokenId, landTokenId);
     }
- 
+
     function countClubLand(uint256 tokenId) external view returns(uint) {
         return clubPledged[tokenId].length;
     }

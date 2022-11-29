@@ -1,37 +1,45 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
+/// @custom:security-contact info@footage.club
+contract ClubERC20 is ERC20, ERC20Burnable, Pausable, Ownable {
+    uint256 public Price;
 
-contract ClubERC20 is Ownable, ERC20 {
+    constructor(string memory _name, string memory _symbol, uint256 _price) ERC20(_name, _symbol) {
+        Price = _price;
+    }
 
-    uint256 public price;
+    function pause() public onlyOwner {
+        _pause();
+    }
 
-    constructor(address _owner, string memory _name, string memory _symbol, uint256 _price) ERC20(_name, _symbol) {
-        price = _price;
-        _transferOwnership(_owner);
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    function mint(address to, uint256 amount) external payable {
+        require(msg.value >= Price, "Ether value sent is not correct");
+        _mint(to, amount);
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 amount)
+        internal
+        whenNotPaused
+        override
+    {
+        super._beforeTokenTransfer(from, to, amount);
     }
 
     /**
      * @dev 取出合约中的余额
      */
     function withdraw() external onlyOwner {
-       uint amount = address(this).balance;
-
-       payable(msg.sender).transfer(amount);
-    }
-
-    /**
-     * @dev 查看合约中的余额
-     */
-    function balance() external view onlyOwner returns (uint256) {
-        return address(this).balance;
-    }
-
-    function mint() external payable {
-        require(msg.value == price, "Ether value sent is not correct");
-        _mint(msg.sender, 1);
+        (bool success,) = payable(msg.sender).call{value: address(this).balance}("");
+        require(success, "Failed to send Enter");
     }
 }

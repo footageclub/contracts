@@ -1,10 +1,15 @@
 {
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.3",
-    "@openzeppelin/contracts-upgradeable": "^4.7.3",
+    "@openzeppelin/contracts-upgradeable": "^4.8.0",
     "@openzeppelin/truffle-upgrades": "^1.16.0",
     "@truffle/hdwallet-provider": "^2.0.14",
+    "bip39": "^3.0.4",
     "dotenv": "^16.0.1",
+    "ethereumjs-wallet": "^1.0.2",
     "truffle-contract-size": "^2.0.1"
+  },
+  "devDependencies": {
+    "truffle-plugin-verify": "^0.6.0"
   }
 }

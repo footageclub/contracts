@@ -48,8 +48,22 @@ const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 module.exports = {
   plugins: [
-    'truffle-contract-size'
+    'truffle-contract-size',
+    // truffle run verify testContract --network rinkeby
+    'truffle-plugin-verify'
   ],
+
+  api_keys: {
+    etherscan: process.env.ETHERSCAN_API_KEY
+  },
+
+  verify: {
+    proxy: {
+      host: '127.0.0.1',
+      port: '7890'
+    }
+  },
+
   /**
    * Networks define how you connect to your ethereum client and let you set the
    * defaults web3 uses to send transactions. If you don't specify one truffle
