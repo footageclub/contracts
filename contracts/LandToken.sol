@@ -46,6 +46,7 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
         __ERC721Burnable_init();
         __UUPSUpgradeable_init();
 
+        /// @comment `msg.sender` 改为 `_msgSender()` 更安全
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(PAUSER_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
@@ -69,9 +70,13 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
         _unpause();
     }
 
+    /// @comment 接收 ETH 转帐的合约一般需要定义一个 `receive()` 函数 (https://docs.soliditylang.org/en/latest/contracts.html#receive-ether-function)
     function mint(uint amount, uint256 tokenId, string memory uri, bytes calldata sign) external payable{
         require(hasRole(MINTER_ROLE, keccak256(abi.encodePacked(this, msg.sender, msg.value, tokenId, uri)).toEthSignedMessageHash().recover(sign)), "sign err");
+        /// @comment 可以严格要求 msg.value == amount，防止用户超付
         require(msg.value >= amount, "Ether value sent is not correct");
+        /// @comment 最好检查一下 `tokenId` 是否已经被占用，不然相当于把之前的 NFT 给覆盖了。
+        /// 另外，不清楚具体需求，不过一般 tokenId 都是在 mint 时使用一个 `Counter` 计数器来顺序生成，而不是由外部指定
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, uri);
     }
@@ -119,6 +124,7 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
     /**
      * @dev 获取费用收益地址 
      */
+    /// @comment 直接返回 `address` 就好，为何要包装成一个 `address[]` ？
     function getFeeRecipients(uint256 id) public view override returns (address payable[] memory) {
         require(id > 0, "id 0");
         address payable[] memory result = new address payable[](1);
@@ -129,6 +135,7 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
     /**
      * @dev 获取费用收益数值
      */
+    /// @comment  同上，直接返回 unit 就好
     function getFeeBps(uint256 id) public view override returns (uint[] memory) {
         require(id > 0, "id 0");
         uint[] memory result = new uint[](1);
@@ -141,6 +148,7 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
      */
     function setFeeRecipient(address payable _recipient, uint256 _fee) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_recipient != address(0), "Recipient be present");
+        /// @comment 多些检查； _fee 不能大于 100
         require(_fee > 0, "Fee value be positive");
 
         RRecipientAddress = _recipient;
@@ -151,6 +159,7 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
         uint[] memory bps = new uint[](1);
         bps[0] = _fee;
 
+        /// @comment 同上，没必要包装成 `address[]` 和 `uint[]`
         emit SecondarySaleFees(0, recipients, bps);
     }
 
@@ -170,6 +179,7 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
     /**
      * @dev 取出合约中的余额
      */
+    /// @comment 取款时可以 emit 一个事件
     function withdraw(address payable to) external onlyRole(WITHDRAW_ROLE) {
         require(to != address(0), "address zero");
         (bool success, ) = to.call{value: address(this).balance}("");

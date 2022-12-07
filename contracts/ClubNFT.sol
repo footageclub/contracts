@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /// @custom:security-contact info@footage.club
+/// @comments ERC1155 的合约也可以支持 UUPS 升级 (ERC1155Upgradeable)
 contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Supply {
     using SafeMath for uint256;
 
@@ -69,11 +70,13 @@ contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Su
     }
 
     function mint(uint256 tokenId, uint256 amount, bytes memory data) external payable {
+        /// @comment 数字计算可以使用 OpenZeppline 的 SafeMathUpgradeable
         uint paying = _salePrices[tokenId].mul(amount);
+        /// @comment 可以严格要求 msg.value == paying，防止用户超付
         require(paying > 0 && msg.value >= paying, "msg.value is incorrect");
         require(_totalSupplyLimit[tokenId] > 0 && totalSupply(tokenId) + amount <= _totalSupplyLimit[tokenId], "total limit");
         
-
+        /// @comment `msg.sender` 和 `msg.data` 可以统一用 `_msgSender()` 和 `_msgData()` 来替代
         uint256 userAmount = balanceOf(msg.sender, tokenId);
         require(userAmount + amount <=  _peerSupplyLimit[tokenId], "peer total limit");
 
@@ -116,6 +119,7 @@ contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Su
     }
 
     function setRPercentage(uint rPercebtage_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        /// @admin 检查一下 `rPercebtage_` 的值是否合法
          RPercebtage = rPercebtage_;
     }
 
@@ -136,6 +140,7 @@ contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Su
     /**
      * @dev 取出合约中的余额
      */
+    /// @comment emit 一个 Withdraw 事件记录一下
     function withdraw() external onlyRole(WITHDRAW_ROLE) {
         (bool success,) = RecipientAddress.call{value: address(this).balance}("");
         require(success, "Failed to send Enter");
