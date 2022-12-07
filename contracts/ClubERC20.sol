@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @custom:security-contact info@footage.club
+/// @comment UUPS?
 contract ClubERC20 is ERC20, ERC20Burnable, Pausable, Ownable {
     uint256 public Price;
 
@@ -22,6 +23,7 @@ contract ClubERC20 is ERC20, ERC20Burnable, Pausable, Ownable {
         _unpause();
     }
 
+    /// @comment 这里的 `Price` 和 mint 的 `amount` 没有关系？只要发送 `Print` 个 ETH，就能 mint 任意数量的 `ClubERC20` 吗？
     function mint(address to, uint256 amount) external payable {
         require(msg.value >= Price, "Ether value sent is not correct");
         _mint(to, amount);
