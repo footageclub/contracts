@@ -25,6 +25,11 @@ contract ClubNFTPublic is Initializable, ERC1155Upgradeable, AccessControlUpgrad
     // 设置事件
     event ClubNFTSetting(uint256 indexed clubId, uint256[] indexed tokenids, uint[] indexed totalSupplys, uint[] peerSupplys, uint256[] prices);
 
+     // 支取事件
+    event Withdraw(address indexed address_, uint256 indexed clubId_, uint indexed value_);
+
+    event Received(address indexed sender, uint indexed value);
+
     // 收益人地址 clubid -> address
     mapping(uint256 => address) public Recipients;
     mapping(uint256 => uint256) public RecipientAmount;
@@ -66,12 +71,12 @@ contract ClubNFTPublic is Initializable, ERC1155Upgradeable, AccessControlUpgrad
         __ERC1155Supply_init();
         __UUPSUpgradeable_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(URI_SETTER_ROLE, msg.sender);
-        _grantRole(PAUSER_ROLE, msg.sender);
-        _grantRole(SIGNER_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
-        _grantRole(WITHDRAW_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _grantRole(URI_SETTER_ROLE, _msgSender());
+        _grantRole(PAUSER_ROLE, _msgSender());
+        _grantRole(SIGNER_ROLE, _msgSender());
+        _grantRole(UPGRADER_ROLE, _msgSender());
+        _grantRole(WITHDRAW_ROLE, _msgSender());
 
         PlatformFee = 250;
     }
@@ -88,8 +93,12 @@ contract ClubNFTPublic is Initializable, ERC1155Upgradeable, AccessControlUpgrad
         _unpause();
     }
 
+    receive() external payable {
+        emit Received(_msgSender(), msg.value);
+    }
+
     function mint(uint256 clubId, uint256 tokenId, uint256 amount, bytes calldata sign) external payable {
-        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, msg.sender,clubId, tokenId, amount)).toEthSignedMessageHash().recover(sign)), "sign err");
+        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, _msgSender(),clubId, tokenId, amount)).toEthSignedMessageHash().recover(sign)), "sign err");
         _requireRegister(clubId, tokenId);
         uint256 price = _salePrices[tokenId];
         if (price > 0) {
@@ -101,7 +110,7 @@ contract ClubNFTPublic is Initializable, ERC1155Upgradeable, AccessControlUpgrad
         uint pSupplyToken = _peerSupplyLimit[tokenId][clubId];
         require(totalSupplyToken == 0 || totalSupply(tokenId) + amount <= totalSupplyToken, "total limit");
         
-        uint256 userAmount = balanceOf(msg.sender, tokenId);
+        uint256 userAmount = balanceOf(_msgSender(), tokenId);
         require(userAmount + amount <=  pSupplyToken, "peer total limit");
 
         if (_mintDateLimit[tokenId][clubId].length > 0 ) {
@@ -112,7 +121,7 @@ contract ClubNFTPublic is Initializable, ERC1155Upgradeable, AccessControlUpgrad
             }
         } 
 
-        _mint(msg.sender, tokenId, amount, "");
+        _mint(_msgSender(), tokenId, amount, "");
         RecipientAmount[clubId]+=msg.value;
     }
 
@@ -153,7 +162,7 @@ contract ClubNFTPublic is Initializable, ERC1155Upgradeable, AccessControlUpgrad
     }
 
     function setClubNFT(uint256 clubId, uint256[] memory tokenids, uint[] memory totalSupplys, uint[] memory peerSupplys, uint256[] memory prices, bytes calldata sign) external {
-        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, msg.sender, clubId, tokenids, totalSupplys, peerSupplys, prices)).toEthSignedMessageHash().recover(sign)), "sign err");
+        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, _msgSender(), clubId, tokenids, totalSupplys, peerSupplys, prices)).toEthSignedMessageHash().recover(sign)), "sign err");
         require(tokenids.length == totalSupplys.length, "data err");
         require(tokenids.length == peerSupplys.length, "data err");
         require(tokenids.length == prices.length, "data err");
@@ -174,15 +183,16 @@ contract ClubNFTPublic is Initializable, ERC1155Upgradeable, AccessControlUpgrad
     }
 
     function withdraw(uint256 clubId, bytes calldata sign) external {
-       require(hasRole(WITHDRAW_ROLE, keccak256(abi.encodePacked(this, msg.sender, clubId, "withdraw")).toEthSignedMessageHash().recover(sign)), "sign err");
-       require(Recipients[clubId] == msg.sender && Recipients[clubId] != address(0), "bad sender");
+       require(hasRole(WITHDRAW_ROLE, keccak256(abi.encodePacked(this, _msgSender(), clubId, "withdraw")).toEthSignedMessageHash().recover(sign)), "sign err");
+       require(Recipients[clubId] == _msgSender() && Recipients[clubId] != address(0), "bad sender");
 
        uint256 amount = RecipientAmount[clubId];
        RecipientAmount[clubId] = 0;
        require(amount > 0, "zero amount");
 
-       (bool success,) = payable(msg.sender).call{value: amount}("");
+       (bool success,) = payable(_msgSender()).call{value: amount}("");
        require(success, "Failed to send Enter");
+       emit Withdraw(_msgSender(), clubId, amount);
     }
 
     function _requireRegister(uint256 clubId, uint256 tokenId) internal view virtual {

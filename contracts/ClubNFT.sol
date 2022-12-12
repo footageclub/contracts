@@ -8,15 +8,20 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+/// comments ERC1155 的合约也可以支持 UUPS 升级 (ERC1155Upgradeable)
+/// comment 由于该合约为动态部署合约,根据需求无须使用可升级合约。另外,动态合约需要动态部署，如何使用UUPS将造成动态部署困难。
 /// @custom:security-contact info@footage.club
-/// @comments ERC1155 的合约也可以支持 UUPS 升级 (ERC1155Upgradeable)
 contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Supply {
     using SafeMath for uint256;
 
     bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant WITHDRAW_ROLE = keccak256("WITHDRAW_ROLE");
+
+    // 支取事件
+    event Withdraw(address indexed recipientAddress, uint indexed value);
+
+    event Received(address indexed sender, uint indexed value);
 
     // 设置事件
     event ClubNFTSetting(uint256[] indexed tokenids, uint[] indexed totalSupplys, uint[] indexed peerSupplys, uint256[] prices);
@@ -46,10 +51,10 @@ contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Su
     mapping(uint256 => uint256[]) private _mintDateLimit; 
 
     constructor(address recipientAddress_, address rRecipientAddress_, uint rPercebtage_, uint platformFee_, string memory uri_) ERC1155(uri_) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(URI_SETTER_ROLE, msg.sender);
-        _grantRole(PAUSER_ROLE, msg.sender);
-        _grantRole(WITHDRAW_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _grantRole(URI_SETTER_ROLE, _msgSender());
+        _grantRole(PAUSER_ROLE, _msgSender());
+        _grantRole(WITHDRAW_ROLE, _msgSender());
 
         RecipientAddress = recipientAddress_;
         RRecipientAddress = rRecipientAddress_;
@@ -69,15 +74,22 @@ contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Su
         _unpause();
     }
 
+    receive() external payable {
+        emit Received(_msgSender(), msg.value);
+    }
+
     function mint(uint256 tokenId, uint256 amount, bytes memory data) external payable {
-        /// @comment 数字计算可以使用 OpenZeppline 的 SafeMathUpgradeable
+        /// comment 数字计算可以使用 OpenZeppline 的 SafeMathUpgradeable
+        /// comment 由于不是UUPS，所以这里使用SafeMath
         uint paying = _salePrices[tokenId].mul(amount);
-        /// @comment 可以严格要求 msg.value == paying，防止用户超付
-        require(paying > 0 && msg.value >= paying, "msg.value is incorrect");
+        /// comment 可以严格要求 msg.value == paying，防止用户超付
+        /// comment 已修改
+        require(paying > 0 && msg.value == paying, "msg.value is incorrect");
         require(_totalSupplyLimit[tokenId] > 0 && totalSupply(tokenId) + amount <= _totalSupplyLimit[tokenId], "total limit");
         
-        /// @comment `msg.sender` 和 `msg.data` 可以统一用 `_msgSender()` 和 `_msgData()` 来替代
-        uint256 userAmount = balanceOf(msg.sender, tokenId);
+        /// comment `msg.sender` 和 `msg.data` 可以统一用 `_msgSender()` 和 `_msgData()` 来替代
+        /// comment 已修改
+        uint256 userAmount = balanceOf(_msgSender(), tokenId);
         require(userAmount + amount <=  _peerSupplyLimit[tokenId], "peer total limit");
 
         if (_mintDateLimit[tokenId].length > 0 ) {
@@ -88,7 +100,7 @@ contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Su
             }
         } 
 
-        _mint(msg.sender, tokenId, amount, data);
+        _mint(_msgSender(), tokenId, amount, data);
     }
 
     function _beforeTokenTransfer(address operator, address from, address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
@@ -119,7 +131,9 @@ contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Su
     }
 
     function setRPercentage(uint rPercebtage_) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        /// @admin 检查一下 `rPercebtage_` 的值是否合法
+        /// admin 检查一下 `rPercebtage_` 的值是否合法
+        /// comment 已修改
+        require(rPercebtage_ > 0 && rPercebtage_ <= 10000, "invalid value");
          RPercebtage = rPercebtage_;
     }
 
@@ -137,12 +151,15 @@ contract ClubNFT is ERC1155, AccessControl, Pausable, ERC1155Burnable, ERC1155Su
         emit ClubNFTSetting(tokenids, totalSupplys, peerSupplys, prices);
     }
 
+    /// comment emit 一个 Withdraw 事件记录一下
+    /// comment 已修改
     /**
      * @dev 取出合约中的余额
      */
-    /// @comment emit 一个 Withdraw 事件记录一下
     function withdraw() external onlyRole(WITHDRAW_ROLE) {
-        (bool success,) = RecipientAddress.call{value: address(this).balance}("");
+        uint value = address(this).balance;
+        (bool success,) = RecipientAddress.call{value: value}("");
         require(success, "Failed to send Enter");
+        emit Withdraw(RecipientAddress, value);
     }
 }

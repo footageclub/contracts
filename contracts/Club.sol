@@ -53,11 +53,11 @@ contract Club is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, 
         __ERC721Burnable_init();
         __UUPSUpgradeable_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(PAUSER_ROLE, msg.sender);
-        _grantRole(SIGNER_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
-        _grantRole(URI_SETTER_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _grantRole(PAUSER_ROLE, _msgSender());
+        _grantRole(SIGNER_ROLE, _msgSender());
+        _grantRole(UPGRADER_ROLE, _msgSender());
+        _grantRole(URI_SETTER_ROLE, _msgSender());
 
         Land = _land;
         BaseURI = _uri;
@@ -127,36 +127,36 @@ contract Club is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, 
      * @dev 实现地块质押
      */
     function pledge(uint256 tokenId, uint256 landTokenId, string memory _tokenURI, bytes calldata sign) external {
-        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, msg.sender, tokenId, landTokenId)).toEthSignedMessageHash().recover(sign)), "sign err");
+        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, _msgSender(), tokenId, landTokenId)).toEthSignedMessageHash().recover(sign)), "sign err");
         require(!_requireLedged(landTokenId), "Ledged land");
         address landOwner = Land.ownerOf(landTokenId);
-        require(landOwner == msg.sender, "address not a valid land owner");
-        require(tokenId > 0 && (Land.getApproved(landTokenId) ==  address(this) || Land.isApprovedForAll(msg.sender, address(this))), "Invalid token ID");
+        require(landOwner == _msgSender(), "address not a valid land owner");
+        require(tokenId > 0 && (Land.getApproved(landTokenId) ==  address(this) || Land.isApprovedForAll(_msgSender(), address(this))), "Invalid token ID");
 
         if (!_exists(tokenId)) {
-            _safeMint(msg.sender, tokenId);
+            _safeMint(_msgSender(), tokenId);
             _setTokenURI(tokenId, _tokenURI);
         } else {
             address owner = ownerOf(tokenId);
-            require(owner == msg.sender, "address not a valid owner");
+            require(owner == _msgSender(), "address not a valid owner");
         }
 
-        Land.safeTransferFrom(msg.sender, address(this), landTokenId);
+        Land.safeTransferFrom(_msgSender(), address(this), landTokenId);
         pledged[landTokenId] = tokenId;
         clubPledged[tokenId].push(landTokenId);
         clubPledgedIndex[tokenId][landTokenId] = clubPledged[tokenId].length - 1;
 
-        emit PledgeTransfer(msg.sender, tokenId, landTokenId);
+        emit PledgeTransfer(_msgSender(), tokenId, landTokenId);
     }
 
     /**
      * @dev 实现地块赎回
      */
     function unpledge(uint256 tokenId, uint256 landTokenId, bytes calldata sign) external {
-        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, msg.sender, tokenId, landTokenId)).toEthSignedMessageHash().recover(sign)), "sign err");
+        require(hasRole(SIGNER_ROLE, keccak256(abi.encodePacked(this, _msgSender(), tokenId, landTokenId)).toEthSignedMessageHash().recover(sign)), "sign err");
         _requireMinted(tokenId);
         address owner = ownerOf(tokenId);
-        require(owner == msg.sender, "address not a valid owner");
+        require(owner == _msgSender(), "address not a valid owner");
         require(pledged[landTokenId] == tokenId, "Invalid Owner");
         require(Land.ownerOf(landTokenId) == address(this), "Invalid token ID");
 
@@ -168,7 +168,7 @@ contract Club is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, 
         delete pledged[landTokenId];
         delete clubPledgedIndex[tokenId][landTokenId];
 
-        emit UnpledgeTransfer(msg.sender, tokenId, landTokenId);
+        emit UnpledgeTransfer(_msgSender(), tokenId, landTokenId);
     }
 
     function countClubLand(uint256 tokenId) external view returns(uint) {

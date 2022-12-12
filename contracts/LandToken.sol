@@ -23,6 +23,11 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant WITHDRAW_ROLE = keccak256("WITHDRAW_ROLE");
 
+    event Received(address indexed sender, uint indexed value);
+
+     // 支取事件
+    event Withdraw(address indexed address_, uint indexed value_);
+
     // 定义二级市场版税收益账户和费用
     address payable public RRecipientAddress;
 
@@ -46,14 +51,15 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
         __ERC721Burnable_init();
         __UUPSUpgradeable_init();
 
-        /// @comment `msg.sender` 改为 `_msgSender()` 更安全
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(PAUSER_ROLE, msg.sender);
-        _grantRole(MINTER_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
-        _grantRole(WITHDRAW_ROLE, msg.sender);
+        /// comment `msg.sender` 改为 `_msgSender()` 更安全
+        /// comment 已修改
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _grantRole(PAUSER_ROLE, _msgSender());
+        _grantRole(MINTER_ROLE, _msgSender());
+        _grantRole(UPGRADER_ROLE, _msgSender());
+        _grantRole(WITHDRAW_ROLE, _msgSender());
 
-        RRecipientAddress = payable(msg.sender);
+        RRecipientAddress = payable(_msgSender());
         RPercebtage = 250;
         baseURI = _uri;
     }
@@ -70,14 +76,19 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
         _unpause();
     }
 
-    /// @comment 接收 ETH 转帐的合约一般需要定义一个 `receive()` 函数 (https://docs.soliditylang.org/en/latest/contracts.html#receive-ether-function)
+    receive() external payable {
+        emit Received(_msgSender(), msg.value);
+    }
+
+    /// comment 接收 ETH 转帐的合约一般需要定义一个 `receive()` 函数 (https://docs.soliditylang.org/en/latest/contracts.html#receive-ether-function)
+    /// comment 已修改
     function mint(uint amount, uint256 tokenId, string memory uri, bytes calldata sign) external payable{
-        require(hasRole(MINTER_ROLE, keccak256(abi.encodePacked(this, msg.sender, msg.value, tokenId, uri)).toEthSignedMessageHash().recover(sign)), "sign err");
-        /// @comment 可以严格要求 msg.value == amount，防止用户超付
+        require(hasRole(MINTER_ROLE, keccak256(abi.encodePacked(this, _msgSender(), msg.value, tokenId, uri)).toEthSignedMessageHash().recover(sign)), "sign err");
+        /// comment 可以严格要求 msg.value == amount，防止用户超付
         require(msg.value >= amount, "Ether value sent is not correct");
-        /// @comment 最好检查一下 `tokenId` 是否已经被占用，不然相当于把之前的 NFT 给覆盖了。
+        /// comment 最好检查一下 `tokenId` 是否已经被占用，不然相当于把之前的 NFT 给覆盖了。
         /// 另外，不清楚具体需求，不过一般 tokenId 都是在 mint 时使用一个 `Counter` 计数器来顺序生成，而不是由外部指定
-        _safeMint(msg.sender, tokenId);
+        _safeMint(_msgSender(), tokenId);
         _setTokenURI(tokenId, uri);
     }
 
@@ -124,7 +135,8 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
     /**
      * @dev 获取费用收益地址 
      */
-    /// @comment 直接返回 `address` 就好，为何要包装成一个 `address[]` ？
+    /// comment 直接返回 `address` 就好，为何要包装成一个 `address[]` ？
+    /// comment 这是对二级市场的定义，会在二级市场需求确认下来后，进行修改
     function getFeeRecipients(uint256 id) public view override returns (address payable[] memory) {
         require(id > 0, "id 0");
         address payable[] memory result = new address payable[](1);
@@ -135,7 +147,8 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
     /**
      * @dev 获取费用收益数值
      */
-    /// @comment  同上，直接返回 unit 就好
+    /// comment  同上，直接返回 unit 就好
+    /// comment 这是对二级市场的定义，会在二级市场需求确认下来后，进行修改
     function getFeeBps(uint256 id) public view override returns (uint[] memory) {
         require(id > 0, "id 0");
         uint[] memory result = new uint[](1);
@@ -148,8 +161,9 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
      */
     function setFeeRecipient(address payable _recipient, uint256 _fee) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_recipient != address(0), "Recipient be present");
-        /// @comment 多些检查； _fee 不能大于 100
-        require(_fee > 0, "Fee value be positive");
+        /// comment 多些检查； _fee 不能大于 100
+        /// comment 已修改
+        require(_fee > 0 && _fee <= 10000, "Fee value be positive");
 
         RRecipientAddress = _recipient;
         RPercebtage = _fee;
@@ -159,7 +173,8 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
         uint[] memory bps = new uint[](1);
         bps[0] = _fee;
 
-        /// @comment 同上，没必要包装成 `address[]` 和 `uint[]`
+        /// comment 同上，没必要包装成 `address[]` 和 `uint[]`
+        /// comment 这是对二级市场的定义，会在二级市场需求确认下来后，进行修改
         emit SecondarySaleFees(0, recipients, bps);
     }
 
@@ -179,11 +194,15 @@ contract LandToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradea
     /**
      * @dev 取出合约中的余额
      */
-    /// @comment 取款时可以 emit 一个事件
+    /// comment 取款时可以 emit 一个事件
+    /// comment 已修改
     function withdraw(address payable to) external onlyRole(WITHDRAW_ROLE) {
         require(to != address(0), "address zero");
-        (bool success, ) = to.call{value: address(this).balance}("");
+        uint value = address(this).balance;
+        (bool success, ) = to.call{value: value}("");
         require(success, "Failed to send Enter");
+
+        emit Withdraw(to, value);
     }
 
     /**
