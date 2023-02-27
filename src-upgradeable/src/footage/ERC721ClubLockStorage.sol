@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import { MintParams } from "seadrop-upgradeable/lib/SeaDropStructsUpgradeable.sol";
+import { MintParams } from "../lib/SeaDropStructsUpgradeable.sol";
 
 library ERC721ClubLockStorage {
     bytes32 internal constant _NAME_HASH = keccak256("Footage");

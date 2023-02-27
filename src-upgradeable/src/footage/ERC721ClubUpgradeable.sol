@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import {
     ERC721ContractMetadataUpgradeable,
     ISeaDropTokenContractMetadataUpgradeable
-} from "seadrop-upgradeable/ERC721ContractMetadataUpgradeable.sol";
+} from "../ERC721ContractMetadataUpgradeable.sol";
 
 
 import {
@@ -23,13 +23,13 @@ import { ERC721ClubStorage } from "./ERC721ClubStorage.sol";
 
 import {
     ERC721ContractMetadataStorage
-} from "seadrop-upgradeable/ERC721ContractMetadataStorage.sol";
+} from "../ERC721ContractMetadataStorage.sol";
 
 import { IERC721AUpgradeable } from "../../lib-upgradeable/ERC721A-Upgradeable/contracts/IERC721AUpgradeable.sol";
 import { ECDSAUpgradeable }  from "../../lib-upgradeable/openzeppelin-contracts-upgradeable/contracts/utils/cryptography/ECDSAUpgradeable.sol";
 import {
     SeaDropErrorsAndEventsUpgradeable
-} from "seadrop-upgradeable/lib/SeaDropErrorsAndEventsUpgradeable.sol";
+} from "../lib/SeaDropErrorsAndEventsUpgradeable.sol";
 
 contract ERC721ClubUpgradeable is ERC721ContractMetadataUpgradeable,
     ReentrancyGuardUpgradeable,
