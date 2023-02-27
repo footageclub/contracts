@@ -25,7 +25,7 @@ import {
 
 import { ERC721A } from "ERC721A/ERC721A.sol";
 
-import { ReentrancyGuard } from "solmate/utils/ReentrancyGuard.sol";
+import { ReentrancyGuard } from "../../lib/solmate/src/utils/ReentrancyGuard.sol";
 
 import {
     IERC165

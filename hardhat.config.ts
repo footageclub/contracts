@@ -1,9 +1,14 @@
-import fs from "fs"
-import { HardhatUserConfig } from "hardhat/config";
+import fs from "fs";
 
+import type { HardhatUserConfig } from "hardhat/config";
+import "hardhat-preprocessor";
 import "dotenv/config";
-import "@nomicfoundation/hardhat-toolbox";
-import "hardhat-preprocessor"
+import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-etherscan";
+import "@typechain/hardhat";
+import "hardhat-gas-reporter";
+
 
 // Configure remappings.
 // https://book.getfoundry.sh/config/hardhat
@@ -16,6 +21,9 @@ function getRemappings() {
     .filter(Boolean) // remove empty lines
     .map((line: string) => line.trim().split("="));
 }
+
+// You need to export an object to set up your config
+// Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -33,18 +41,20 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    goerli: {
-      url: process.env.RPC_URL_GOERLI,
-      accounts: [process.env.PRIVATE_KEY ?? ""],
-    },
     hardhat: {
       blockGasLimit: 30_000_000,
       throwOnCallFailures: false,
     },
-    
     verificationNetwork: {
       url: process.env.NETWORK_RPC ?? "",
     },
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS !== undefined,
+    currency: "USD",
+  },
+  etherscan: {
+    apiKey: process.env.EXPLORER_API_KEY,
   },
   preprocess: {
     eachLine: (hre) => ({
@@ -60,7 +70,6 @@ const config: HardhatUserConfig = {
       },
     }),
   },
-
   // specify separate cache for hardhat, since it could possibly conflict with foundry's
   paths: { sources: "./src", cache: "./hh-cache" },
 };

@@ -1,7 +1,10 @@
 {
   "name": "footage",
   "scripts": {
-    "build": "hardhat compile --config ./hardhat.config.ts"
+    "build": "hardhat compile --config ./hardhat.config.ts",
+    "clean": "hardhat clean",
+    "test": "hardhat test --config ./hardhat.config.ts",
+    "test:upgradeable": "hardhat test --config ./src-upgradeable/hardhat.config.ts"
   },
   "lint-staged": {
     "*.sol": "prettier --write",
@@ -9,9 +12,6 @@
     "*.ts": "prettier --write"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
-    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
-    "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "ethers": "^5.7.0",
     "hardhat": "^2.12.7"
   },
@@ -26,6 +26,10 @@
     "@types/node": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "^5.36.2",
     "@typescript-eslint/parser": "^5.36.2",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
+    "@openzeppelin/hardhat-upgrades": "^1.22.1",
+    "@rari-capital/solmate": "^6.4.0",
     "chai": "^4.3.6",
     "dotenv": "^16.0.2",
     "eslint": "^8.23.0",

@@ -16,9 +16,9 @@ import {
     SignedMintValidationParams
 } from "./lib/SeaDropStructs.sol";
 
-import { SafeTransferLib } from "solmate/utils/SafeTransferLib.sol";
+import { SafeTransferLib } from "../../lib/solmate/src/utils/SafeTransferLib.sol";
 
-import { ReentrancyGuard } from "solmate/utils/ReentrancyGuard.sol";
+import { ReentrancyGuard } from "../../lib/solmate/src/utils/ReentrancyGuard.sol";
 
 import { IERC721 } from "openzeppelin-contracts/token/ERC721/IERC721.sol";
 
