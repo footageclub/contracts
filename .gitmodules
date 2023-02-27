@@ -5,9 +5,6 @@
 [submodule "lib/seadrop"]
 	path = lib/seadrop
 	url = https://github.com/ProjectOpenSea/seadrop.git
-[submodule "contracts-upgradeable/lib-upgradeable/openzeppelin-contracts-upgradeable"]
-	path = contracts-upgradeable/lib-upgradeable/openzeppelin-contracts-upgradeable
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable.git
-[submodule "contracts-upgradeable/lib-upgradeable/ERC721A-Upgradeable"]
-	path = contracts-upgradeable/lib-upgradeable/ERC721A-Upgradeable
-	url = https://github.com/chiru-labs/ERC721A-Upgradeable.git
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts.git
