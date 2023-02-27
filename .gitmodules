@@ -1,0 +1,7 @@
+[submodule "lib/seaport"]
+	path = lib/seaport
+	url = https://github.com/ProjectOpenSea/seaport.git
+	branch = v1.4
+[submodule "lib/seadrop"]
+	path = lib/seadrop
+	url = https://github.com/ProjectOpenSea/seadrop.git
