@@ -7,5 +7,27 @@ typechain-types
 
 # Hardhat files
 cache
-artifacts
+artifacts/
+hh-cache/
+hh-cache-coverage/
+temp-src-coverage/
 
+#foundry test compilation files
+cache
+out
+reference-out
+optimized-out
+reference-working
+broadcast
+build
+lib2
+
+.DS_Store
+
+# VScode
+.vscode
+__pycache__
+
+# use typescript instead of javascript
+*.js
+*.txt

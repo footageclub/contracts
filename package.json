@@ -2,5 +2,9 @@
   "name": "footage",
   "dependencies": {
     "hardhat": "^2.12.7"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "hardhat-preprocessor": "^0.1.5"
   }
 }
