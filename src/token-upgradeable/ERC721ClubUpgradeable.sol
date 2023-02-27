@@ -9,15 +9,15 @@ import {
 
 import {
     ReentrancyGuardUpgradeable
-} from "../lib-upgradeable/solmate/src/utils/ReentrancyGuardUpgradeable.sol";
+} from "../../lib-upgradeable/solmate/src/utils/ReentrancyGuardUpgradeable.sol";
 
 import {
     IERC165Upgradeable
-} from "../lib-upgradeable/openzeppelin-contracts-upgradeable/contracts/utils/introspection/IERC165Upgradeable.sol";
+} from "../../lib-upgradeable/openzeppelin-contracts-upgradeable/contracts/utils/introspection/IERC165Upgradeable.sol";
 
 import {
     DefaultOperatorFiltererUpgradeable
-} from "../lib-upgradeable/operator-filter-registry/src/upgradeable/DefaultOperatorFiltererUpgradeable.sol";
+} from "../../lib-upgradeable/operator-filter-registry/src/upgradeable/DefaultOperatorFiltererUpgradeable.sol";
 
 import { ERC721ClubStorage } from "./ERC721ClubStorage.sol";
 
@@ -25,8 +25,8 @@ import {
     ERC721ContractMetadataStorage
 } from "seadrop-upgradeable/ERC721ContractMetadataStorage.sol";
 
-import { IERC721AUpgradeable } from "../lib-upgradeable/ERC721A-Upgradeable/contracts/IERC721AUpgradeable.sol";
-import { ECDSAUpgradeable }  from "../lib-upgradeable/openzeppelin-contracts-upgradeable/contracts/utils/cryptography/ECDSAUpgradeable.sol";
+import { IERC721AUpgradeable } from "../../lib-upgradeable/ERC721A-Upgradeable/contracts/IERC721AUpgradeable.sol";
+import { ECDSAUpgradeable }  from "../../lib-upgradeable/openzeppelin-contracts-upgradeable/contracts/utils/cryptography/ECDSAUpgradeable.sol";
 import {
     SeaDropErrorsAndEventsUpgradeable
 } from "seadrop-upgradeable/lib/SeaDropErrorsAndEventsUpgradeable.sol";

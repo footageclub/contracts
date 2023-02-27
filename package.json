@@ -1,7 +1,7 @@
 {
   "name": "footage",
   "scripts": {
-    "build": "cd contracts-upgradeable && hardhat compile --config ./hardhat.config.ts"
+    "build": "hardhat compile --config ./hardhat.config.ts"
   },
   "lint-staged": {
     "*.sol": "prettier --write",
@@ -9,6 +9,8 @@
     "*.ts": "prettier --write"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "ethers": "^5.7.0",
     "hardhat": "^2.12.7"

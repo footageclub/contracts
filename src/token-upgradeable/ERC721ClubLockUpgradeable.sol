@@ -1,22 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+
 import {
-    ERC721ContractMetadataUpgradeable,
     ISeaDropTokenContractMetadataUpgradeable
+} from "seadrop-upgradeable/interfaces/ISeaDropTokenContractMetadataUpgradeable.sol";
+
+import { 
+    ERC721ContractMetadataUpgradeable
 } from "seadrop-upgradeable/ERC721ContractMetadataUpgradeable.sol";
 
 import {
     ReentrancyGuardUpgradeable
-} from "../lib-upgradeable/solmate/src/utils/ReentrancyGuardUpgradeable.sol";
+} from "../../lib-upgradeable/solmate/src/utils/ReentrancyGuardUpgradeable.sol";
 
 import {
     IERC165Upgradeable
-} from "../lib-upgradeable/openzeppelin-contracts-upgradeable/contracts/utils/introspection/IERC165Upgradeable.sol";
+} from "../../lib-upgradeable/openzeppelin-contracts-upgradeable/contracts/utils/introspection/IERC165Upgradeable.sol";
 
 import {
     DefaultOperatorFiltererUpgradeable
-} from "../lib-upgradeable/operator-filter-registry/src/upgradeable/DefaultOperatorFiltererUpgradeable.sol";
+} from "../../lib-upgradeable/operator-filter-registry/src/upgradeable/DefaultOperatorFiltererUpgradeable.sol";
 
 import {
     ERC721ContractMetadataStorage
@@ -24,10 +28,10 @@ import {
 
 import { ERC721SeaDropUpgradeable } from "seadrop-upgradeable/ERC721SeaDropUpgradeable.sol";
 import { ERC721ClubLockStorage } from "./ERC721ClubLockStorage.sol";
-import { MintParams } from 'seadrop-upgradeable/lib/SeaDropStructsUpgradeable.sol';
+import { MintParams } from "seadrop-upgradeable/lib/SeaDropStructsUpgradeable.sol";
 import { 
     ECDSAUpgradeable 
-}  from "../lib-upgradeable/openzeppelin-contracts-upgradeable/contracts/utils/cryptography/ECDSAUpgradeable.sol";
+}  from "../../lib-upgradeable/openzeppelin-contracts-upgradeable/contracts/utils/cryptography/ECDSAUpgradeable.sol";
 
 import {
     SeaDropErrorsAndEventsUpgradeable
