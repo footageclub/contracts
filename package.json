@@ -1,0 +1,6 @@
+{
+  "name": "footage",
+  "dependencies": {
+    "hardhat": "^2.12.7"
+  }
+}
