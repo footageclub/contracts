@@ -1,9 +1,16 @@
 # Footage
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+# 编译合约
+```shell
+yarn build
+```
 
-Try running some of the following tasks:
+# 测试合约 
+```shell
+yarn test
+```
 
+# 其它
 ```shell
 npx hardhat help
 npx hardhat test
