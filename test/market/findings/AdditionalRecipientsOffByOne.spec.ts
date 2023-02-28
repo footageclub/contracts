@@ -13,6 +13,7 @@ import type {
   TestERC20,
   TestERC721,
 } from "../../../typechain-types";
+
 import type { SeaportFixtures } from "../utils/fixtures";
 import type { AdvancedOrder, ConsiderationItem } from "../utils/types";
 import type { Wallet } from "ethers";
@@ -186,9 +187,7 @@ describe("Additional recipients off by one error allows skipping second consider
         .slice(0, 66)
         .concat(hexZeroPad("0x", 96).slice(2));
       const scuffedContract = getScuffedContract(marketplaceContract);
-      const scuffed = scuffedContract.fulfillBasicOrder({
-        parameters: basicOrderParameters,
-      });
+      const scuffed = scuffedContract.fulfillBasicOrder(basicOrderParameters);
       scuffed.parameters.signature.length.replace(100);
       scuffed.parameters.signature.tail.replace(carol.address);
 
@@ -219,7 +218,6 @@ describe("Additional recipients off by one error allows skipping second consider
       });
     } else {
       it("Bob attempts to fulfill Alice's order with malicious calldata, but the transaction reverts", async () => {
-        console.log("--d--->", marketplaceContract.address,marketplaceContract);
         await expect(
           bob.sendTransaction({
             to: marketplaceContract.address,

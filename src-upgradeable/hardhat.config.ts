@@ -1,6 +1,7 @@
 
 import "dotenv/config";
-
+import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-toolbox";
 
 module.exports = {
   solidity: {

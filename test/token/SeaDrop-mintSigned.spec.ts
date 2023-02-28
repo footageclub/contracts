@@ -123,8 +123,8 @@ describe(`SeaDrop - Mint Signed (v${VERSION})`, function () {
     mintParams = {
       mintPrice: "100000000000000000", // 0.1 ether
       maxTotalMintableByWallet: 10,
-      startTime: Math.round(Date.now() / 1000) - 100,
-      endTime: Math.round(Date.now() / 1000) + 100,
+      startTime: Math.round(Date.now() / 1000) - 8 * 3600,
+      endTime: Math.round(Date.now() / 1000) + 3600,
       dropStageIndex: 1,
       maxTokenSupplyForStage: 100,
       feeBps: 1000,

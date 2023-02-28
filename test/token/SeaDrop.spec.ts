@@ -65,7 +65,7 @@ describe(`SeaDrop (v${VERSION})`, function () {
         const publicDrop = {
           mintPrice: 1000,
           maxTotalMintableByWallet: 1,
-          startTime: Math.round(Date.now() / 1000) - 100,
+          startTime: Math.round(Date.now() / 1000) - 3600 * 8,
           endTime: Math.round(Date.now() / 1000) + 100,
           feeBps: 1000,
           restrictFeeRecipients: false,
@@ -154,8 +154,8 @@ describe(`SeaDrop (v${VERSION})`, function () {
     const publicDrop = {
       mintPrice: oneEther,
       maxTotalMintableByWallet: 1,
-      startTime: Math.round(Date.now() / 1000) - 100,
-      endTime: Math.round(Date.now() / 1000) + 100,
+      startTime: Math.round(Date.now() / 1000) - 8 * 3600,
+      endTime: Math.round(Date.now() / 1000) + 3600,
       feeBps: 1000,
       restrictFeeRecipients: false,
     };

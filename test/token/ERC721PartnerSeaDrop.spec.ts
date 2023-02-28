@@ -56,8 +56,8 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
     publicDrop = {
       mintPrice: "100000000000000000", // 0.1 ether
       maxTotalMintableByWallet: 10,
-      startTime: Math.round(Date.now() / 1000) - 100,
-      endTime: Math.round(Date.now() / 1000) + 100,
+      startTime: Math.round(Date.now() / 1000) - 1000,
+      endTime: Math.round(Date.now() / 1000) + 10000,
       feeBps: 1000,
       restrictFeeRecipients: true,
     };
