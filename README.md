@@ -10,11 +10,7 @@ yarn build
 yarn test
 ```
 
-# 其它
+# 部署合约
 ```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
 npx hardhat run scripts/deploy.ts
 ```
