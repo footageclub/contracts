@@ -99,7 +99,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
         1,
         { value: publicDrop.mintPrice }
       )
-    ).to.be.revertedWith("CreatorPayoutAddressCannotBeZeroAddress");
+    ).to.be.revertedWithCustomError(seadrop, "CreatorPayoutAddressCannotBeZeroAddress");
 
     await token.updateAllowedFeeRecipient(
       seadrop.address,
@@ -111,7 +111,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
   it("Should only let the token owner update the drop URI", async () => {
     await expect(
       token.connect(creator).updateDropURI(seadrop.address, "http://test.com")
-    ).to.revertedWith("OnlyOwner");
+    ).to.revertedWithCustomError(token, "OnlyOwner");
 
     await expect(
       token.connect(owner).updateDropURI(seadrop.address, "http://test.com")
@@ -138,7 +138,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
         ethers.constants.AddressZero,
         true
       )
-    ).to.be.revertedWith("FeeRecipientCannotBeZeroAddress");
+    ).to.be.revertedWithCustomError(seadrop, "FeeRecipientCannotBeZeroAddress");
 
     await expect(
       token.updateAllowedFeeRecipient(
@@ -156,7 +156,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
         feeRecipient.address,
         true
       )
-    ).to.be.revertedWith("DuplicateFeeRecipient");
+    ).to.be.revertedWithCustomError(seadrop, "DuplicateFeeRecipient");
 
     expect(await seadrop.getAllowedFeeRecipients(token.address)).to.deep.eq([
       feeRecipient.address,
@@ -195,7 +195,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
         feeRecipient.address,
         false
       )
-    ).to.be.revertedWith("FeeRecipientNotPresent");
+    ).to.be.revertedWithCustomError(seadrop, "FeeRecipientNotPresent");
   });
 
   it("Should only let the owner set the provenance hash", async () => {
@@ -208,7 +208,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
 
     await expect(
       token.connect(creator).setProvenanceHash(firstProvenanceHash)
-    ).to.revertedWith("OnlyOwner");
+    ).to.revertedWithCustomError(token, "OnlyOwner");
 
     await expect(token.connect(owner).setProvenanceHash(firstProvenanceHash))
       .to.emit(token, "ProvenanceHashUpdated")
@@ -226,7 +226,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
 
     await expect(
       token.connect(owner).setProvenanceHash(secondProvenanceHash)
-    ).to.be.revertedWith("ProvenanceHashCannotBeSetAfterMintStarted");
+    ).to.be.revertedWithCustomError(token, "ProvenanceHashCannotBeSetAfterMintStarted");
 
     expect(await token.provenanceHash()).to.equal(firstProvenanceHash);
   });
@@ -246,13 +246,13 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
 
         await expect(
           token.connect(impersonatedSigner).mintSeaDrop(minter.address, 1)
-        ).to.be.revertedWith("MintQuantityExceedsMaxSupply(2, 1)");
+        ).to.be.revertedWithCustomError(token, "MintQuantityExceedsMaxSupply").withArgs(ethers.BigNumber.from("2"), ethers.BigNumber.from("1"));
       }
     );
 
     await expect(
       token.connect(owner).mintSeaDrop(minter.address, 1)
-    ).to.be.revertedWith("OnlyAllowedSeaDrop");
+    ).to.be.revertedWithCustomError(token, "OnlyAllowedSeaDrop");
   });
 
   it("Should return supportsInterface true for supported interfaces", async () => {
@@ -302,11 +302,11 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
   it("Should only let the token owner update the allowed SeaDrop addresses", async () => {
     await expect(
       token.connect(creator).updateAllowedSeaDrop([seadrop.address])
-    ).to.revertedWith("OnlyOwner");
+    ).to.revertedWithCustomError(token, "OnlyOwner");
 
     await expect(
       token.connect(minter).updateAllowedSeaDrop([seadrop.address])
-    ).to.revertedWith("OnlyOwner");
+    ).to.revertedWithCustomError(token, "OnlyOwner");
 
     await expect(token.updateAllowedSeaDrop([seadrop.address]))
       .to.emit(token, "AllowedSeaDropUpdated")
@@ -351,7 +351,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
 
     await expect(
       token.connect(creator).updateAllowList(seadrop.address, allowListData)
-    ).to.be.revertedWith("OnlyOwner");
+    ).to.be.revertedWithCustomError(token, "OnlyOwner");
 
     // Test `updateTokenGatedDrop` for coverage.
     const dropStage = {
@@ -374,7 +374,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
       token
         .connect(creator)
         .updateTokenGatedDrop(seadrop.address, `0x${"4".repeat(40)}`, dropStage)
-    ).to.be.revertedWith("OnlyOwner");
+    ).to.be.revertedWithCustomError(token, "OnlyOwner");
 
     const signedMintValidationParams = {
       minMintPrice: 10,
@@ -401,7 +401,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
           `0x${"5".repeat(40)}`,
           signedMintValidationParams
         )
-    ).to.be.revertedWith("OnlyOwner");
+    ).to.be.revertedWithCustomError(token, "OnlyOwner");
 
     // Test `updatePayer` for coverage.
     await token.updatePayer(seadrop.address, `0x${"6".repeat(40)}`, true);
@@ -414,7 +414,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
           `0x${"6".repeat(40)}`,
           signedMintValidationParams
         )
-    ).to.be.revertedWith("OnlyOwner");
+    ).to.be.revertedWithCustomError(token, "OnlyOwner");
   });
 
   it("Should be able to update the allowed payers", async () => {
@@ -425,19 +425,19 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
 
     await expect(
       token.updatePayer(seadrop.address, payer.address, false)
-    ).to.be.revertedWith("PayerNotPresent");
+    ).to.be.revertedWithCustomError(seadrop, "PayerNotPresent");
 
     await token.updatePayer(seadrop.address, payer.address, true);
 
     // Ensure that the same payer cannot be added twice.
     await expect(
       token.updatePayer(seadrop.address, payer.address, true)
-    ).to.be.revertedWith("DuplicatePayer()");
+    ).to.be.revertedWithCustomError(seadrop, "DuplicatePayer");
 
     // Ensure that the zero address cannot be added as a payer.
     await expect(
       token.updatePayer(seadrop.address, ethers.constants.AddressZero, true)
-    ).to.be.revertedWith("PayerCannotBeZeroAddress()");
+    ).to.be.revertedWithCustomError(seadrop, "PayerCannotBeZeroAddress");
 
     // Remove the original payer for branch coverage.
     await token.updatePayer(seadrop.address, payer.address, false);
@@ -523,12 +523,12 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
 
       await expect(
         (token as any).connect(creator)[method](...methodParams[method])
-      ).to.be.revertedWith("OnlyOwner()");
+      ).to.be.revertedWithCustomError(token, "OnlyOwner");
 
       if (method !== "updateAllowedSeaDrop") {
         await expect(
           (token as any).connect(owner)[method](...paramsWithNonSeaDrop(method))
-        ).to.be.revertedWith("OnlyAllowedSeaDrop()");
+        ).to.be.revertedWithCustomError(token, "OnlyAllowedSeaDrop");
       }
     }
   });
@@ -643,7 +643,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
 
     await expect(
       token.connect(creator).multiConfigure(config)
-    ).to.be.revertedWith("OnlyOwner()");
+    ).to.be.revertedWithCustomError(token, "OnlyOwner");
 
     // Should revert if tokenGatedAllowedNftToken.length != tokenGatedDropStages.length
     await expect(
@@ -651,7 +651,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
         ...config,
         tokenGatedAllowedNftTokens: config.tokenGatedAllowedNftTokens.slice(1),
       })
-    ).to.be.revertedWith("TokenGatedMismatch");
+    ).to.be.revertedWithCustomError(token, "TokenGatedMismatch");
 
     // Should revert if signers.length != signedMintValidationParams.length
     await expect(
@@ -659,7 +659,7 @@ describe(`ERC721SeaDrop (v${VERSION})`, function () {
         ...config,
         signers: config.signers.slice(1),
       })
-    ).to.be.revertedWith("SignersMismatch");
+    ).to.be.revertedWithCustomError(token, "SignersMismatch");
 
     await expect(token.connect(owner).multiConfigure(config))
       .to.emit(seadrop, "DropURIUpdated")

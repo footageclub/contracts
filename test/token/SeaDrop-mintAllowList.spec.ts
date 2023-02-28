@@ -270,7 +270,7 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proof,
           { value }
         )
-    ).to.be.revertedWith("PayerNotAllowed");
+    ).to.be.revertedWithCustomError(seadrop, "PayerNotAllowed");
 
     // Allow the payer.
     await token.updatePayer(seadrop.address, owner.address, true);
@@ -344,7 +344,7 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proof,
           { value }
         )
-    ).to.be.revertedWith("InvalidProof()");
+    ).to.be.revertedWithCustomError(seadrop, "InvalidProof");
 
     await expect(
       seadrop
@@ -358,7 +358,7 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proof,
           { value }
         )
-    ).to.be.revertedWith("InvalidProof()");
+    ).to.be.revertedWithCustomError(seadrop, "InvalidProof");
   });
 
   it("Should not mint an allow list stage with an unknown fee recipient", async () => {
@@ -402,7 +402,7 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proof,
           { value }
         )
-    ).to.be.revertedWith("FeeRecipientNotAllowed()");
+    ).to.be.revertedWithCustomError(seadrop, "FeeRecipientNotAllowed");
   });
 
   it("Should not mint an allow list stage with a different token contract", async () => {
@@ -463,7 +463,7 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proof,
           { value }
         )
-    ).to.be.revertedWith("InvalidProof()");
+    ).to.be.revertedWithCustomError(seadrop, "InvalidProof");
   });
 
   it("Should not mint an allow list stage with different mint params", async () => {
@@ -511,7 +511,7 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proof,
           { value }
         )
-    ).to.be.revertedWith("InvalidProof()");
+    ).to.be.revertedWithCustomError(seadrop, "InvalidProof");
   });
 
   it("Should not mint an allow list stage after exceeding max mints per wallet", async () => {
@@ -591,11 +591,9 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proof,
           { value: maxTotalMintableByWalletMintValue }
         )
-    ).to.be.revertedWith(
-      `MintQuantityExceedsMaxMintedPerWallet(${
-        (mintParams.maxTotalMintableByWallet as number) + mintQuantity
-      }, ${mintParams.maxTotalMintableByWallet})`
-    );
+    ).to.be.revertedWithCustomError(seadrop,
+      `MintQuantityExceedsMaxMintedPerWallet`
+    ).withArgs(`${(mintParams.maxTotalMintableByWallet as number) + mintQuantity}`,`${mintParams.maxTotalMintableByWallet}`);
   });
 
   it("Should not mint an allow list stage after exceeding max token supply for stage", async () => {
@@ -686,11 +684,9 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proofSecondMinter,
           { value: maxTotalMintableByWalletMintValue }
         )
-    ).to.be.revertedWith(
-      `MintQuantityExceedsMaxTokenSupplyForStage(${
-        2 * (mintParams.maxTotalMintableByWallet as number)
-      }, ${mintParams.maxTokenSupplyForStage})`
-    );
+    ).to.be.revertedWithCustomError(seadrop,
+      `MintQuantityExceedsMaxTokenSupplyForStage`
+    ).withArgs(`${2 * (mintParams.maxTotalMintableByWallet as number)}`, `${mintParams.maxTokenSupplyForStage}`);
   });
 
   it("Should not mint an allow list stage after exceeding max token supply", async () => {
@@ -784,11 +780,8 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proofSecondMinter,
           { value: maxTotalMintableByWalletMintValue }
         )
-    ).to.be.revertedWith(
-      `MintQuantityExceedsMaxSupply(${
-        2 * (mintParams.maxTotalMintableByWallet as number)
-      }, 11`
-    );
+    ).to.be.revertedWithCustomError(seadrop,
+      `MintQuantityExceedsMaxSupply`).withArgs(`${2 * (mintParams.maxTotalMintableByWallet as number)}`, '11');
   });
 
   it("Should not mint with an uninitialized AllowList", async () => {
@@ -833,7 +826,7 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proof,
           { value }
         )
-    ).to.be.revertedWith("InvalidProof()");
+    ).to.be.revertedWithCustomError(seadrop, "InvalidProof");
 
     // Try with proof of zero.
     await expect(
@@ -848,7 +841,7 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           [`0x${"0".repeat(64)}`],
           { value }
         )
-    ).to.be.revertedWith("InvalidProof()");
+    ).to.be.revertedWithCustomError(seadrop, "InvalidProof");
   });
 
   it("Should not mint with feeBps > 10_000", async () => {
@@ -900,6 +893,6 @@ describe(`SeaDrop - Mint Allow List (v${VERSION})`, function () {
           proof,
           { value }
         )
-    ).to.be.revertedWith("InvalidFeeBps(10100)");
+    ).to.be.revertedWithCustomError(seadrop, "InvalidFeeBps").withArgs('10100');
   });
 });

@@ -81,7 +81,7 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
         1,
         { value: publicDrop.mintPrice }
       )
-    ).to.be.revertedWith("CreatorPayoutAddressCannotBeZeroAddress");
+    ).to.be.revertedWithCustomError(seadrop, "CreatorPayoutAddressCannotBeZeroAddress");
 
     await token
       .connect(admin)
@@ -97,7 +97,7 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
       token
         .connect(admin)
         .updateCreatorPayoutAddress(seadrop.address, creator.address)
-    ).to.revertedWith("OnlyOwner");
+    ).to.revertedWithCustomError(token, "OnlyOwner");
 
     expect(await seadrop.getCreatorPayoutAddress(token.address)).to.equal(
       ethers.constants.AddressZero
@@ -110,7 +110,7 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
           seadrop.address,
           ethers.constants.AddressZero
         )
-    ).to.be.revertedWith("CreatorPayoutAddressCannotBeZeroAddress");
+    ).to.be.revertedWithCustomError(seadrop,"CreatorPayoutAddressCannotBeZeroAddress");
 
     await expect(
       token
@@ -128,7 +128,7 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
   it("Should only let the token owner or admin update the drop URI", async () => {
     await expect(
       token.connect(creator).updateDropURI(seadrop.address, "http://test.com")
-    ).to.revertedWith("OnlyOwnerOrAdministrator");
+    ).to.revertedWithCustomError(token, "OnlyOwnerOrAdministrator");
 
     await expect(
       token.connect(owner).updateDropURI(seadrop.address, "http://test.com")
@@ -147,11 +147,11 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
     // Only the admin should be able to set `feeBps`.
     await expect(
       token.connect(creator).updatePublicDrop(seadrop.address, publicDrop)
-    ).to.be.revertedWith("OnlyOwner");
+    ).to.be.revertedWithCustomError(token, "OnlyOwnerOrAdministrator");
 
     await expect(
       token.connect(owner).updatePublicDrop(seadrop.address, publicDrop)
-    ).to.be.revertedWith("AdministratorMustInitializeWithFee()");
+    ).to.be.revertedWithCustomError(token, "AdministratorMustInitializeWithFee");
 
     // Ensure public drop fee parameters were not changed.
     expect((await seadrop.getPublicDrop(token.address))[4]).to.eq(0);
@@ -212,7 +212,7 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
       token
         .connect(owner)
         .updateAllowedFeeRecipient(seadrop.address, feeRecipient.address, true)
-    ).to.be.revertedWith("OnlyAdministrator");
+    ).to.be.revertedWithCustomError(token, "OnlyAdministrator");
 
     expect(await seadrop.getAllowedFeeRecipients(token.address)).to.deep.eq([]);
 
@@ -224,7 +224,7 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
           ethers.constants.AddressZero,
           true
         )
-    ).to.be.revertedWith("FeeRecipientCannotBeZeroAddress");
+    ).to.be.revertedWithCustomError(seadrop, "FeeRecipientCannotBeZeroAddress");
 
     await expect(
       token
@@ -238,7 +238,7 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
       token
         .connect(admin)
         .updateAllowedFeeRecipient(seadrop.address, feeRecipient.address, true)
-    ).to.be.revertedWith("DuplicateFeeRecipient");
+    ).to.be.revertedWithCustomError(seadrop, "DuplicateFeeRecipient");
 
     expect(await seadrop.getAllowedFeeRecipients(token.address)).to.deep.eq([
       feeRecipient.address,
@@ -273,7 +273,7 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
       token
         .connect(admin)
         .updateAllowedFeeRecipient(seadrop.address, feeRecipient.address, false)
-    ).to.be.revertedWith("FeeRecipientNotPresent");
+    ).to.be.revertedWithCustomError(seadrop, "FeeRecipientNotPresent");
   });
 
   it("Should only let the owner set the provenance hash", async () => {
@@ -286,11 +286,11 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
 
     await expect(
       token.connect(creator).setProvenanceHash(firstProvenanceHash)
-    ).to.revertedWith("OnlyOwner");
+    ).to.revertedWithCustomError(token, "OnlyOwner");
 
     await expect(
       token.connect(admin).setProvenanceHash(firstProvenanceHash)
-    ).to.revertedWith("OnlyOwner");
+    ).to.revertedWithCustomError(token,"OnlyOwner");
 
     await expect(token.connect(owner).setProvenanceHash(firstProvenanceHash))
       .to.emit(token, "ProvenanceHashUpdated")
@@ -308,7 +308,7 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
 
     await expect(
       token.connect(owner).setProvenanceHash(secondProvenanceHash)
-    ).to.be.revertedWith("ProvenanceHashCannotBeSetAfterMintStarted");
+    ).to.be.revertedWithCustomError(token,"ProvenanceHashCannotBeSetAfterMintStarted");
 
     expect(await token.provenanceHash()).to.equal(firstProvenanceHash);
   });
@@ -316,11 +316,11 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
   it("Should only let the token owner or admin update the allowed SeaDrop addresses", async () => {
     await expect(
       token.connect(creator).updateAllowedSeaDrop([seadrop.address])
-    ).to.revertedWith("OnlyOwnerOrAdministrator");
+    ).to.revertedWithCustomError(token,"OnlyOwnerOrAdministrator");
 
     await expect(
       token.connect(minter).updateAllowedSeaDrop([seadrop.address])
-    ).to.revertedWith("OnlyOwnerOrAdministrator");
+    ).to.revertedWithCustomError(token,"OnlyOwnerOrAdministrator");
 
     await expect(token.connect(owner).updateAllowedSeaDrop([seadrop.address]))
       .to.emit(token, "AllowedSeaDropUpdated")
@@ -368,13 +368,13 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
 
         await expect(
           token.connect(impersonatedSigner).mintSeaDrop(minter.address, 1)
-        ).to.be.revertedWith("MintQuantityExceedsMaxSupply(2, 1)");
+        ).to.be.revertedWithCustomError(token,"MintQuantityExceedsMaxSupply").withArgs(ethers.BigNumber.from("2"), ethers.BigNumber.from("1"));
       }
     );
 
     await expect(
       token.connect(owner).mintSeaDrop(minter.address, 1)
-    ).to.be.revertedWith("OnlyAllowedSeaDrop");
+    ).to.be.revertedWithCustomError(token,"OnlyAllowedSeaDrop");
   });
 
   it("Should only let the owner and administrator call update functions", async () => {
@@ -450,12 +450,12 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
 
       await expect(
         (token as any).connect(creator)[method](...methodParams[method])
-      ).to.be.revertedWith("OnlyOwnerOrAdministrator()");
+      ).to.be.revertedWithCustomError(token,"OnlyOwnerOrAdministrator");
 
       if (method !== "updateAllowedSeaDrop") {
         await expect(
           (token as any).connect(admin)[method](...paramsWithNonSeaDrop(method))
-        ).to.be.revertedWith("OnlyAllowedSeaDrop()");
+        ).to.be.revertedWithCustomError(token,"OnlyAllowedSeaDrop");
       }
     }
 
@@ -464,15 +464,15 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
 
       await expect(
         (token as any).connect(owner)[method](...methodParams[method])
-      ).to.be.revertedWith("OnlyAdministrator()");
+      ).to.be.revertedWithCustomError(token, "OnlyAdministrator");
 
       await expect(
         (token as any).connect(creator)[method](...methodParams[method])
-      ).to.be.revertedWith("OnlyAdministrator()");
+      ).to.be.revertedWithCustomError(token,"OnlyAdministrator");
 
       await expect(
         (token as any).connect(admin)[method](...paramsWithNonSeaDrop(method))
-      ).to.be.revertedWith("OnlyAllowedSeaDrop()");
+      ).to.be.revertedWithCustomError(token,"OnlyAllowedSeaDrop");
     }
 
     for (const method of onlyOwnerMethods) {
@@ -480,15 +480,15 @@ describe(`ERC721PartnerSeaDrop (v${VERSION})`, function () {
 
       await expect(
         (token as any).connect(admin)[method](...methodParams[method])
-      ).to.be.revertedWith("OnlyOwner()");
+      ).to.be.revertedWithCustomError(token,"OnlyOwner");
 
       await expect(
         (token as any).connect(creator)[method](...methodParams[method])
-      ).to.be.revertedWith("OnlyOwner()");
+      ).to.be.revertedWithCustomError(token,"OnlyOwner");
 
       await expect(
         (token as any).connect(owner)[method](...paramsWithNonSeaDrop(method))
-      ).to.be.revertedWith("OnlyAllowedSeaDrop()");
+      ).to.be.revertedWithCustomError(token,"OnlyAllowedSeaDrop");
     }
   });
 });

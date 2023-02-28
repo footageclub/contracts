@@ -51,8 +51,8 @@ describe(`ERC721SeaDropRandomOffset (v${VERSION})`, function () {
   it("Should only let the owner call setRandomOffset once the max supply is reached", async () => {
     await token.setMaxSupply(100);
 
-    await expect(token.connect(owner).setRandomOffset()).to.be.revertedWith(
-      "NotFullyMinted()"
+    await expect(token.connect(owner).setRandomOffset()).to.be.revertedWithCustomError(token,
+      "NotFullyMinted"
     );
 
     // Mint to the max supply.
@@ -70,8 +70,8 @@ describe(`ERC721SeaDropRandomOffset (v${VERSION})`, function () {
 
     await token.connect(owner).setRandomOffset();
 
-    await expect(token.connect(owner).setRandomOffset()).to.be.revertedWith(
-      "AlreadyRevealed()"
+    await expect(token.connect(owner).setRandomOffset()).to.be.revertedWithCustomError(token,
+      "AlreadyRevealed"
     );
 
     expect(await token.randomOffset()).to.not.equal(ethers.constants.Zero);
@@ -80,8 +80,8 @@ describe(`ERC721SeaDropRandomOffset (v${VERSION})`, function () {
   it("Should return the tokenURI correctly offset by randomOffset", async () => {
     await token.setMaxSupply(100);
 
-    await expect(token.tokenURI(1)).to.be.revertedWith(
-      "URIQueryForNonexistentToken()"
+    await expect(token.tokenURI(1)).to.be.revertedWithCustomError(token,
+      "URIQueryForNonexistentToken"
     );
 
     // Mint to the max supply.

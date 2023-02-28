@@ -44,7 +44,6 @@ describe(`ERC721ContractMetadata (v${VERSION})`, function () {
     token = await ERC721PartnerSeaDrop.deploy("", "", admin.address, [
       seadrop.address,
     ]);
-    console.log(seadrop.address, token.address)
     await token.connect(owner).setMaxSupply(5);
   });
 
@@ -52,104 +51,105 @@ describe(`ERC721ContractMetadata (v${VERSION})`, function () {
     expect(await token.baseURI()).to.equal("");
     await expect(
       token.connect(admin).setBaseURI("http://example.com")
-    ).to.be.revertedWith("OnlyOwner");
+    ).to.be.revertedWithCustomError(token, "OnlyOwner");
     expect(await token.baseURI()).to.equal("");
 
-    // // it should not emit BatchMetadataUpdate when totalSupply is 0
-    // await expect(
-    //   token.connect(owner).setBaseURI("http://example.com")
-    // ).to.not.emit(token, "BatchMetadataUpdate");
+    // it should not emit BatchMetadataUpdate when totalSupply is 0
+    await expect(
+      token.connect(owner).setBaseURI("http://example.com")
+    ).to.not.emit(token, "BatchMetadataUpdate");
 
-    // // it should emit BatchMetadataUpdate when totalSupply is greater than 0
-    // await whileImpersonating(
-    //   seadrop.address,
-    //   provider,
-    //   async (impersonatedSigner) => {
-    //     await token.connect(impersonatedSigner).mintSeaDrop(owner.address, 2);
-    //   }
-    // );
-    // await expect(token.connect(owner).setBaseURI("http://example.com"))
-    //   .to.emit(token, "BatchMetadataUpdate")
-    //   .withArgs(1, await token.totalSupply());
-    // expect(await token.baseURI()).to.equal("http://example.com");
+    // it should emit BatchMetadataUpdate when totalSupply is greater than 0
+    await whileImpersonating(
+      seadrop.address,
+      provider,
+      async (impersonatedSigner) => {
+        await token.connect(impersonatedSigner).mintSeaDrop(owner.address, 2);
+      }
+    );
+    await expect(token.connect(owner).setBaseURI("http://example.com"))
+      .to.emit(token, "BatchMetadataUpdate")
+      .withArgs(1, await token.totalSupply());
+    expect(await token.baseURI()).to.equal("http://example.com");
   });
 
-  // it("Should only let the owner set and get the contract URI", async () => {
-  //   expect(await token.contractURI()).to.equal("");
+  it("Should only let the owner set and get the contract URI", async () => {
+    expect(await token.contractURI()).to.equal("");
 
-  //   await expect(
-  //     token.connect(admin).setContractURI("http://example.com")
-  //   ).to.be.revertedWith("OnlyOwner");
-  //   expect(await token.contractURI()).to.equal("");
+    await expect(
+      token.connect(admin).setContractURI("http://example.com")
+    ).to.be.revertedWithCustomError(token, "OnlyOwner");
+    expect(await token.contractURI()).to.equal("");
 
-  //   await expect(token.connect(owner).setContractURI("http://example.com"))
-  //     .to.emit(token, "ContractURIUpdated")
-  //     .withArgs("http://example.com");
-  //   expect(await token.contractURI()).to.equal("http://example.com");
-  // });
+    await expect(token.connect(owner).setContractURI("http://example.com"))
+      .to.emit(token, "ContractURIUpdated")
+      .withArgs("http://example.com");
+    expect(await token.contractURI()).to.equal("http://example.com");
+  });
 
-  // it("Should only let the owner set and get the max supply", async () => {
-  //   expect(await token.maxSupply()).to.equal(5);
+  it("Should only let the owner set and get the max supply", async () => {
+    expect(await token.maxSupply()).to.equal(5);
 
-  //   await expect(token.connect(admin).setMaxSupply(10)).to.be.revertedWith(
-  //     "OnlyOwner"
-  //   );
-  //   expect(await token.maxSupply()).to.equal(5);
+    await expect(token.connect(admin).setMaxSupply(10)).to.be.revertedWithCustomError(token,
+      "OnlyOwner"
+    );
+    expect(await token.maxSupply()).to.equal(5);
 
-  //   await expect(token.connect(owner).setMaxSupply(25))
-  //     .to.emit(token, "MaxSupplyUpdated")
-  //     .withArgs(25);
-  //   expect(await token.maxSupply()).to.equal(25);
-  // });
+    await expect(token.connect(owner).setMaxSupply(25))
+      .to.emit(token, "MaxSupplyUpdated")
+      .withArgs(25);
+    expect(await token.maxSupply()).to.equal(25);
+  });
 
-  // it("Should not let the owner set the max supply over 2**64", async () => {
-  //   await expect(
-  //     token.connect(owner).setMaxSupply(ethers.BigNumber.from(2).pow(70))
-  //   ).to.be.revertedWith(
-  //     `CannotExceedMaxSupplyOfUint64(${ethers.BigNumber.from(2).pow(70)})`
-  //   );
-  // });
+  it("Should not let the owner set the max supply over 2**64", async () => {
+    await expect(
+      token.connect(owner).setMaxSupply(ethers.BigNumber.from(2).pow(70))
+    ).to.be.revertedWithCustomError(
+      token,
+      `CannotExceedMaxSupplyOfUint64`
+    ).withArgs(`${ethers.BigNumber.from(2).pow(70)}`);
+  });
 
-  // it("Should only let the owner notify update of batch token URIs", async () => {
-  //   await expect(
-  //     token.connect(admin).emitBatchMetadataUpdate(5, 10)
-  //   ).to.be.revertedWith("OnlyOwner");
+  it("Should only let the owner notify update of batch token URIs", async () => {
+    await expect(
+      token.connect(admin).emitBatchMetadataUpdate(5, 10)
+    ).to.be.revertedWithCustomError(token,"OnlyOwner");
 
-  //   await expect(token.connect(owner).emitBatchMetadataUpdate(5, 10))
-  //     .to.emit(token, "BatchMetadataUpdate")
-  //     .withArgs(5, 10);
-  // });
+    await expect(token.connect(owner).emitBatchMetadataUpdate(5, 10))
+      .to.emit(token, "BatchMetadataUpdate")
+      .withArgs(5, 10);
+  });
 
-  // it("Should only let the owner update the royalties address and basis points", async () => {
-  //   expect(await token.royaltyAddress()).to.equal(ethers.constants.AddressZero);
-  //   expect(await token.royaltyBasisPoints()).to.equal(0);
+  it("Should only let the owner update the royalties address and basis points", async () => {
+    expect(await token.royaltyAddress()).to.equal(ethers.constants.AddressZero);
+    expect(await token.royaltyBasisPoints()).to.equal(0);
 
-  //   await expect(
-  //     token.connect(admin).setRoyaltyInfo([owner.address, 100])
-  //   ).to.be.revertedWith("OnlyOwner");
+    await expect(
+      token.connect(admin).setRoyaltyInfo([owner.address, 100])
+    ).to.be.revertedWithCustomError(token, "OnlyOwner");
 
-  //   await expect(
-  //     token.connect(owner).setRoyaltyInfo([owner.address, 10_001])
-  //   ).to.be.revertedWith("InvalidRoyaltyBasisPoints(10001)");
-  //   await expect(
-  //     token.connect(owner).setRoyaltyInfo([ethers.constants.AddressZero, 200])
-  //   ).to.be.revertedWith(`RoyaltyAddressCannotBeZeroAddress()`);
+    await expect(
+      token.connect(owner).setRoyaltyInfo([owner.address, 10_001])
+    ).to.be.revertedWithCustomError(token, "InvalidRoyaltyBasisPoints").withArgs("10001");
+    await expect(
+      token.connect(owner).setRoyaltyInfo([ethers.constants.AddressZero, 200])
+    ).to.be.revertedWithCustomError(token,`RoyaltyAddressCannotBeZeroAddress`);
 
-  //   await expect(token.connect(owner).setRoyaltyInfo([admin.address, 100]))
-  //     .to.emit(token, "RoyaltyInfoUpdated")
-  //     .withArgs(admin.address, 100);
-  //   await expect(token.connect(owner).setRoyaltyInfo([admin.address, 500])) // 5%
-  //     .to.emit(token, "RoyaltyInfoUpdated")
-  //     .withArgs(admin.address, 500);
+    await expect(token.connect(owner).setRoyaltyInfo([admin.address, 100]))
+      .to.emit(token, "RoyaltyInfoUpdated")
+      .withArgs(admin.address, 100);
+    await expect(token.connect(owner).setRoyaltyInfo([admin.address, 500])) // 5%
+      .to.emit(token, "RoyaltyInfoUpdated")
+      .withArgs(admin.address, 500);
 
-  //   expect(await token.royaltyAddress()).to.equal(admin.address);
-  //   expect(await token.royaltyBasisPoints()).to.equal(500);
+    expect(await token.royaltyAddress()).to.equal(admin.address);
+    expect(await token.royaltyBasisPoints()).to.equal(500);
 
-  //   expect(await token.royaltyInfo(1, 100_000)).to.deep.equal([
-  //     admin.address,
-  //     ethers.BigNumber.from(5000),
-  //   ]);
-  //   // 0x2a55205a is interface id for EIP-2981
-  //   expect(await token.supportsInterface("0x2a55205a")).to.equal(true);
-  // });
+    expect(await token.royaltyInfo(1, 100_000)).to.deep.equal([
+      admin.address,
+      ethers.BigNumber.from(5000),
+    ]);
+    // 0x2a55205a is interface id for EIP-2981
+    expect(await token.supportsInterface("0x2a55205a")).to.equal(true);
+  });
 });

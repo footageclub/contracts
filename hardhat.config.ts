@@ -1,6 +1,8 @@
 import fs from "fs";
 
-import { HardhatUserConfig } from "hardhat/config";
+import type { HardhatUserConfig } from "hardhat/config";
+import "dotenv/config";
+import "hardhat-gas-reporter";
 import "hardhat-preprocessor";
 import "@nomicfoundation/hardhat-toolbox";
 
@@ -39,6 +41,13 @@ const config: HardhatUserConfig = {
     verificationNetwork: {
       url: process.env.NETWORK_RPC ?? "",
     },
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS !== undefined,
+    currency: "USD",
+  },
+  etherscan: {
+    apiKey: process.env.EXPLORER_API_KEY,
   },
   preprocess: {
     eachLine: (hre) => ({

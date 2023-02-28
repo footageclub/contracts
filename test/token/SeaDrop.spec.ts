@@ -72,7 +72,7 @@ describe(`SeaDrop (v${VERSION})`, function () {
         };
         await expect(
           seadrop.connect(impersonatedSigner).updatePublicDrop(publicDrop)
-        ).to.be.revertedWith("OnlyINonFungibleSeaDropToken");
+        ).to.be.revertedWithCustomError(seadrop,"OnlyINonFungibleSeaDropToken");
 
         const allowListData = {
           merkleRoot: ethers.constants.HashZero,
@@ -81,7 +81,7 @@ describe(`SeaDrop (v${VERSION})`, function () {
         };
         await expect(
           seadrop.connect(impersonatedSigner).updateAllowList(allowListData)
-        ).to.be.revertedWith("OnlyINonFungibleSeaDropToken");
+        ).to.be.revertedWithCustomError(seadrop,"OnlyINonFungibleSeaDropToken");
 
         const tokenGatedDropStage = {
           mintPrice: "10000000000000000", // 0.01 ether
@@ -97,19 +97,19 @@ describe(`SeaDrop (v${VERSION})`, function () {
           seadrop
             .connect(impersonatedSigner)
             .updateTokenGatedDrop(minter.address, tokenGatedDropStage)
-        ).to.be.revertedWith("OnlyINonFungibleSeaDropToken");
+        ).to.be.revertedWithCustomError(seadrop,"OnlyINonFungibleSeaDropToken");
 
         await expect(
           seadrop
             .connect(impersonatedSigner)
             .updateCreatorPayoutAddress(minter.address)
-        ).to.be.revertedWith("OnlyINonFungibleSeaDropToken");
+        ).to.be.revertedWithCustomError(seadrop,"OnlyINonFungibleSeaDropToken");
 
         await expect(
           seadrop
             .connect(impersonatedSigner)
             .updateAllowedFeeRecipient(minter.address, true)
-        ).to.be.revertedWith("OnlyINonFungibleSeaDropToken");
+        ).to.be.revertedWithCustomError(seadrop,"OnlyINonFungibleSeaDropToken");
 
         const signedMintValidationParams = {
           minMintPrice: 1,
@@ -127,15 +127,15 @@ describe(`SeaDrop (v${VERSION})`, function () {
               minter.address,
               signedMintValidationParams
             )
-        ).to.be.revertedWith("OnlyINonFungibleSeaDropToken");
+        ).to.be.revertedWithCustomError(seadrop,"OnlyINonFungibleSeaDropToken");
 
         await expect(
           seadrop.connect(impersonatedSigner).updateDropURI("http://test.com")
-        ).to.be.revertedWith("OnlyINonFungibleSeaDropToken");
+        ).to.be.revertedWithCustomError(seadrop,"OnlyINonFungibleSeaDropToken");
 
         await expect(
           seadrop.connect(impersonatedSigner).updatePayer(minter.address, true)
-        ).to.be.revertedWith("OnlyINonFungibleSeaDropToken");
+        ).to.be.revertedWithCustomError(seadrop,"OnlyINonFungibleSeaDropToken");
       }
     );
 

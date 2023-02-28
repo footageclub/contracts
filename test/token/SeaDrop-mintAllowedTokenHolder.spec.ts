@@ -176,7 +176,7 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           mintParams,
           { value: dropStage.mintPrice }
         )
-    ).to.be.revertedWith("PayerNotAllowed");
+    ).to.be.revertedWithCustomError(seadrop, "PayerNotAllowed");
 
     // Allow the payer.
     await token
@@ -297,9 +297,9 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           mintParams,
           { value: dropStage.mintPrice }
         )
-    ).to.be.revertedWith(
-      `TokenGatedTokenIdAlreadyRedeemed("${token.address}", "${allowedNftToken.address}", 0)`
-    );
+    ).to.be.revertedWithCustomError(seadrop,
+      `TokenGatedTokenIdAlreadyRedeemed`
+    ).withArgs(`${token.address}`, `${allowedNftToken.address}`, ethers.BigNumber.from("0"));
   });
 
   it("Should revert if the minter does not own the allowed NFT token passed into the call", async () => {
@@ -321,9 +321,9 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           mintParams,
           { value: dropStage.mintPrice }
         )
-    ).to.be.revertedWith(
-      `TokenGatedNotTokenOwner("${token.address}", "${allowedNftToken.address}", 0)`
-    );
+    ).to.be.revertedWithCustomError(seadrop,
+      `TokenGatedNotTokenOwner`
+    ).withArgs(`${token.address}`, `${allowedNftToken.address}`, ethers.BigNumber.from("0"));
   });
 
   it("Should revert if the drop stage is not active", async () => {
@@ -361,11 +361,9 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
         ethers.constants.AddressZero,
         mintParams
       )
-    ).to.be.revertedWith(
-      `NotActive(${mostRecentBlockTimestamp + 1}, ${dropStage.startTime}, ${
-        dropStageExpired.endTime
-      })`
-    );
+    ).to.be.revertedWithCustomError(seadrop,
+      `NotActive`
+    ).withArgs(`${mostRecentBlockTimestamp + 1}`, `${dropStage.startTime}`, `${dropStageExpired.endTime}`);
   });
 
   it("Should not mint an allowed token holder stage with a different fee recipient", async () => {
@@ -390,7 +388,7 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           mintParams,
           { value: dropStage.mintPrice }
         )
-    ).to.be.revertedWith("FeeRecipientNotAllowed()");
+    ).to.be.revertedWithCustomError(seadrop, "FeeRecipientNotAllowed");
   });
 
   it("Should not mint an allowed token holder stage with a different token contract", async () => {
@@ -442,7 +440,7 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           mintParams,
           { value: dropStage.mintPrice }
         )
-    ).to.be.revertedWith(`NotActive(${mostRecentBlockTimestamp + 1}, 0, 0)`);
+    ).to.be.revertedWithCustomError(seadrop, `NotActive`).withArgs(`${mostRecentBlockTimestamp + 1}`, '0', '0');
   });
 
   it("Should not mint an allowed token holder stage with different mint params", async () => {
@@ -477,7 +475,7 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           mintParams,
           { value: dropStage.mintPrice }
         )
-    ).to.be.revertedWith(`NotActive(${mostRecentBlockTimestamp + 1}, 0, 0)`);
+    ).to.be.revertedWithCustomError(seadrop, `NotActive`).withArgs(`${mostRecentBlockTimestamp + 1}`, '0', '0');
   });
 
   it("Should not mint an allowed token holder stage after exceeding max mints per wallet", async () => {
@@ -513,9 +511,9 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           mintParams,
           { value: mintValue }
         )
-    ).to.be.revertedWith(
-      `MintQuantityExceedsMaxMintedPerWallet(${tokenIds.length}, ${dropStage.maxTotalMintableByWallet})`
-    );
+    ).to.be.revertedWithCustomError(seadrop,
+      `MintQuantityExceedsMaxMintedPerWallet`
+    ).withArgs(`${tokenIds.length}`, `${dropStage.maxTotalMintableByWallet}`);
   });
 
   it("Should not mint an allowed token holder stage after exceeding max token supply for stage", async () => {
@@ -574,9 +572,9 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           mintParams,
           { value: mintValue }
         )
-    ).to.be.revertedWith(
-      `MintQuantityExceedsMaxTokenSupplyForStage(${tokenIds.length}, 5)`
-    );
+    ).to.be.revertedWithCustomError(seadrop,
+      `MintQuantityExceedsMaxTokenSupplyForStage`
+    ).withArgs(`${tokenIds.length}`, '5');
   });
 
   it("Should not mint an allowed token holder stage after exceeding max token supply", async () => {
@@ -625,9 +623,9 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           mintParams,
           { value: mintValue }
         )
-    ).to.be.revertedWith(
-      `MintQuantityExceedsMaxSupply(${tokenIds.length}, 100)`
-    );
+    ).to.be.revertedWithCustomError(seadrop,
+      `MintQuantityExceedsMaxSupply`
+    ).withArgs(`${tokenIds.length}`, '100');
   });
 
   it("Should not be able to set an allowedNftToken to the drop token itself or zero address", async () => {
@@ -635,7 +633,7 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
       token
         .connect(admin)
         .updateTokenGatedDrop(seadrop.address, token.address, dropStage)
-    ).to.be.revertedWith("TokenGatedDropAllowedNftTokenCannotBeDropToken()");
+    ).to.be.revertedWithCustomError(seadrop, "TokenGatedDropAllowedNftTokenCannotBeDropToken");
 
     await expect(
       token
@@ -645,7 +643,7 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           ethers.constants.AddressZero,
           dropStage
         )
-    ).to.be.revertedWith("TokenGatedDropAllowedNftTokenCannotBeZeroAddress()");
+    ).to.be.revertedWithCustomError(seadrop, "TokenGatedDropAllowedNftTokenCannotBeZeroAddress");
   });
 
   it("Should not be able to set an invalid fee bps", async () => {
@@ -656,7 +654,7 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           ...dropStage,
           feeBps: 15_000,
         })
-    ).to.be.revertedWith("InvalidFeeBps");
+    ).to.be.revertedWithCustomError(seadrop, "InvalidFeeBps");
   });
 
   it("Should revert when stage not present or fee not set", async () => {
@@ -679,7 +677,7 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
           seadrop
             .connect(impersonatedSigner)
             .updateTokenGatedDrop(token2, zeroMintDropStage)
-        ).to.be.revertedWith("TokenGatedDropStageNotPresent()");
+        ).to.be.revertedWithCustomError(seadrop, "TokenGatedDropStageNotPresent");
       }
     );
 
@@ -689,7 +687,7 @@ describe(`SeaDrop - Mint Allowed Token Holder (v${VERSION})`, function () {
       token
         .connect(owner)
         .updateTokenGatedDrop(seadrop.address, token2, zeroMintDropStage)
-    ).to.be.revertedWith("AdministratorMustInitializeWithFee()");
+    ).to.be.revertedWithCustomError(token, "AdministratorMustInitializeWithFee");
   });
 
   it("Should clear from enumeration when deleted", async () => {
