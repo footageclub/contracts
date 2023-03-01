@@ -38,6 +38,12 @@ const config: HardhatUserConfig = {
       blockGasLimit: 30_000_000,
       throwOnCallFailures: false,
     },
+
+    goerli: {
+      url: process.env.RPC_URL_GOERLI,
+      accounts: [process.env.PRIVATE_KEY],
+    },
+    
     verificationNetwork: {
       url: process.env.NETWORK_RPC ?? "",
     },
