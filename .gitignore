@@ -11,6 +11,7 @@ artifacts/
 hh-cache/
 hh-cache-coverage/
 temp-src-coverage/
+.openzeppelin/
 
 #foundry test compilation files
 cache
@@ -31,3 +32,4 @@ __pycache__
 # use typescript instead of javascript
 *.js
 *.txt
+deployment-addresses-*.json

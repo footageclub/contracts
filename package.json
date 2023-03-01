@@ -3,6 +3,7 @@
   "license": "MIT",
   "scripts": {
     "build": "hardhat compile --config ./hardhat.config.ts",
+    "build:upgradeable": "cd src-upgradeable && hardhat compile --config ./hardhat.config.ts",
     "clean": "hardhat clean",
     "test": "hardhat test --config ./hardhat.config.ts",
     "test:upgradeable": "hardhat test --config ./src-upgradeable/hardhat.config.ts"

@@ -9,7 +9,6 @@ async function main() {
     [
       "Footage",
       "Super Bee",
-      "0x1fA90a9A760d21105aa25FA52e473d2536803F0b",
       ["0x8Ca5014AaC34ABa3Cd050C9112Fe5CD9f4Bb0D43"],
     ],
     { initializer: "initialize" }
